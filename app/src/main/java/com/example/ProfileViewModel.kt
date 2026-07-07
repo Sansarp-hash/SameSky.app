@@ -19,6 +19,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
 
     val profile = dao.getProfile().stateIn(viewModelScope, SharingStarted.Lazily, null)
     val savedMediaLists = dao.getSavedMediaLists().stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+    val favorites = dao.getFavorites().stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     fun saveMediaList(title: String, description: String, items: List<String>) {
         viewModelScope.launch {
@@ -35,6 +36,25 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
     fun deleteSavedMediaList(id: Int) {
         viewModelScope.launch {
             dao.deleteSavedMediaList(id)
+        }
+    }
+
+    fun toggleFavorite(media: MediaItem) {
+        viewModelScope.launch {
+            val isFavorite = favorites.value.any { it.title == media.title }
+            if (isFavorite) {
+                dao.removeFavorite(media.title)
+            } else {
+                dao.addFavorite(
+                    FavoriteMedia(
+                        title = media.title,
+                        thumbnail = media.thumbnail,
+                        region = media.region,
+                        releaseYear = media.releaseYear,
+                        description = media.description
+                    )
+                )
+            }
         }
     }
     

@@ -38,6 +38,16 @@ data class SavedMediaList(
     val timestamp: Long = System.currentTimeMillis()
 )
 
+@Entity(tableName = "favorite_media")
+data class FavoriteMedia(
+    @PrimaryKey val title: String, // title as unique id
+    val thumbnail: String,
+    val region: String,
+    val releaseYear: String,
+    val description: String,
+    val timestamp: Long = System.currentTimeMillis()
+)
+
 @Dao
 interface ProfileDao {
     @Query("SELECT * FROM user_profile WHERE id = 1")
@@ -60,9 +70,18 @@ interface ProfileDao {
 
     @Query("DELETE FROM saved_media_lists WHERE id = :id")
     suspend fun deleteSavedMediaList(id: Int)
+
+    @Query("SELECT * FROM favorite_media ORDER BY timestamp DESC")
+    fun getFavorites(): Flow<List<FavoriteMedia>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun addFavorite(media: FavoriteMedia)
+
+    @Query("DELETE FROM favorite_media WHERE title = :title")
+    suspend fun removeFavorite(title: String)
 }
 
-@Database(entities = [UserProfile::class, TarotReading::class, SavedMediaList::class], version = 4, exportSchema = false)
+@Database(entities = [UserProfile::class, TarotReading::class, SavedMediaList::class, FavoriteMedia::class], version = 5, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun profileDao(): ProfileDao
 

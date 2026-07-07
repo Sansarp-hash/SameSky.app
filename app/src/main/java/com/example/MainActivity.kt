@@ -11,6 +11,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -293,6 +294,7 @@ sealed class Screen(val route: String, val label: String, val icon: ImageVector)
     object Watchlist : Screen("watchlist", "My Watchlist", Icons.Filled.Bookmark)
     object PollArchive : Screen("poll_archive", "Poll Archive", Icons.Filled.HowToVote)
     object AILab : Screen("ai_lab", "AI Lab", Icons.Filled.Science)
+    object EncyclopediaCommunity : Screen("encyclopedia_community", "Enc & Comm", Icons.Filled.List)
 
     object PostDetail : Screen("post_detail/{postId}", "Post", Icons.Filled.Description) {
         fun createRoute(postId: String) = "post_detail/$postId"
@@ -557,6 +559,7 @@ fun SameSkyApp() {
             composable(Screen.CreatePost.route) { CreatePostScreen(navController, viewModel) }
             composable(Screen.MoreHub.route) { MoreHubScreen(navController) }
             composable(Screen.AILab.route) { com.example.ui.AILabScreen(navController) }
+            composable(Screen.EncyclopediaCommunity.route) { EncyclopediaCommunityScreen(navController) }
             composable(Screen.PollArchive.route) { PollArchiveScreen(navController, viewModel) }
             composable(Screen.Watchlist.route) {
                 com.example.ui.MovieWatchlistScreen(navController)
@@ -812,6 +815,28 @@ fun SameSkyApp() {
             containerColor = Obsidian,
             shape = RoundedCornerShape(16.dp)
         )
+    }
+}
+
+@Composable
+fun EncyclopediaCommunityScreen(navController: NavHostController) {
+    val nestedNavController = rememberNavController()
+    
+    Scaffold(
+        bottomBar = {
+            com.example.ui.TogglingNavigationBar(navController = nestedNavController)
+        },
+        containerColor = Obsidian
+    ) { padding ->
+        NavHost(
+            navController = nestedNavController,
+            startDestination = Screen.Discover.route,
+            modifier = Modifier.padding(padding)
+        ) {
+            composable(Screen.Discover.route) { DiscoverScreen(navController) }
+            composable(Screen.Profile.route) { ProfileScreen(navController) }
+            composable(Screen.MoreHub.route) { MoreHubScreen(navController) }
+        }
     }
 }
 
@@ -2917,6 +2942,61 @@ fun DiscoverScreen(navController: NavHostController) {
             CelestialMatchWidget()
             
             Spacer(modifier = Modifier.height(16.dp))
+            
+            // Sorting Dropdown
+            var expanded by remember { mutableStateOf(false) }
+            var sortOption by remember { mutableStateOf("Date Added") }
+            val sortOptions = listOf("Date Added", "Popularity", "Alphabetical")
+            
+            Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+                OutlinedButton(
+                    onClick = { expanded = true },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.outlinedButtonColors(containerColor = WarmObsidian)
+                ) {
+                    Text("Sort by: $sortOption", color = ShimmeringGold)
+                    Icon(Icons.Filled.ArrowDropDown, contentDescription = null, tint = ShimmeringGold)
+                }
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false },
+                    modifier = Modifier.background(Obsidian)
+                ) {
+                    sortOptions.forEach { option ->
+                        DropdownMenuItem(
+                            text = { Text(option, color = LightText) },
+                            onClick = { 
+                                sortOption = option
+                                expanded = false 
+                            }
+                        )
+                    }
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Media Type Filtering
+            var selectedType by remember { mutableStateOf("All") }
+            val mediaTypes = listOf("All", "Movie", "Series", "Drama")
+
+            Row(modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                mediaTypes.forEach { type ->
+                    FilterChip(
+                        selected = selectedType == type,
+                        onClick = { selectedType = type },
+                        label = { Text(type) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            containerColor = WarmObsidian,
+                            selectedContainerColor = ShimmeringGold.copy(alpha = 0.2f),
+                            labelColor = LightText,
+                            selectedLabelColor = ShimmeringGold
+                        )
+                    )
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
 
             Card(
                 modifier = Modifier
@@ -3330,10 +3410,11 @@ fun ArenaScreen(navController: NavHostController) {
 @Composable
 fun ProfileScreen(navController: NavHostController, viewModel: ProfileViewModel = viewModel()) {
     var selectedTab by remember { mutableStateOf(0) }
-    val tabs = listOf("Astrology", "Tarot", "MBTI")
+    val tabs = listOf("Astrology", "Tarot", "MBTI", "Favorites")
 
     val profile by viewModel.profile.collectAsStateWithLifecycle()
     val dailyHoroscope by viewModel.dailyHoroscope.collectAsStateWithLifecycle()
+    val favorites by viewModel.favorites.collectAsStateWithLifecycle()
     var showEditFavorites by remember { mutableStateOf(false) }
     val isHoroscopeLoading by viewModel.isHoroscopeLoading.collectAsStateWithLifecycle()
     val drawnCards by viewModel.drawnCards.collectAsStateWithLifecycle()
