@@ -1,0 +1,99 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  name          String?
+  mbtiResult    String?
+  sunSign       String?
+  moonSign      String?
+  risingSign    String?
+  posts         Post[]
+  comments      Comment[]
+  tarotReadings TarotReading[]
+  watchlists    Watchlist[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Post {
+  id        String    @id @default(uuid())
+  content   String
+  authorId  String
+  author    User      @relation(fields: [authorId], references: [id])
+  comments  Comment[]
+  upvotes   Int       @default(0)
+  createdAt DateTime  @default(now())
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  content   String
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id])
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  upvotes   Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+model TarotReading {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  cards     String
+  reading   String
+  createdAt DateTime @default(now())
+}
+
+model ContentEntry {
+  id          String   @id @default(uuid())
+  title       String
+  content     String
+  mediaUrl    String?
+  category    String   @default("General")
+  flagged     Boolean  @default(false)
+  flagReason  String?
+  mbti        String?
+  sunSign     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model RaffleEntry {
+  id        String   @id @default(uuid())
+  raffleId  String
+  userId    String
+  createdAt DateTime @default(now())
+}
+
+model Series {
+  id          BigInt   @id @default(autoincrement())
+  title       String
+  description String
+  image_url   String
+  priority    String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("series")
+}
+
+model Watchlist {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id])
+  tmdbId    Int      @map("tmdb_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([userId, tmdbId])
+  @@map("watchlists")
+}
+
+
