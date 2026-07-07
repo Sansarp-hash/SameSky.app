@@ -4111,7 +4111,7 @@ fun ProfileScreen(navController: NavHostController, viewModel: ProfileViewModel 
                     }
                 }
             }
-        } else { // MBTI Tab
+        } else if (selectedTab == 2) { // MBTI Tab
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -4243,6 +4243,77 @@ fun ProfileScreen(navController: NavHostController, viewModel: ProfileViewModel 
                                 enabled = mbtiAnswers.size == questions.size
                             ) {
                                 Text("Calculate Viewer Badge", fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
+                }
+            }
+        } else if (selectedTab == 3) { // Favorites Tab
+            if (favorites.isEmpty()) {
+                item {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = WarmObsidian),
+                        shape = RoundedCornerShape(16.dp),
+                        border = BorderStroke(1.dp, ShimmeringGold.copy(alpha = 0.2f))
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(24.dp).fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.FavoriteBorder,
+                                contentDescription = "No Favorites",
+                                tint = MutedText,
+                                modifier = Modifier.size(48.dp)
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Text(
+                                text = "Your Favorite List is Empty",
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "Go to Encyclopedia or Discover tab and add series to your favorites!",
+                                color = LightText,
+                                fontSize = 12.sp,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                }
+            } else {
+                val chunkedFavorites = favorites.chunked(2)
+                chunkedFavorites.forEach { rowItems ->
+                    item {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            rowItems.forEach { fav ->
+                                val mediaItem = MediaItem(
+                                    title = fav.title,
+                                    thumbnail = fav.thumbnail,
+                                    region = fav.region,
+                                    releaseYear = fav.releaseYear,
+                                    description = fav.description
+                                )
+                                Box(modifier = Modifier.weight(1f)) {
+                                    MediaGridCard(
+                                        media = mediaItem,
+                                        isSelected = false,
+                                        isListBuilderMode = false,
+                                        onClick = {
+                                            // Handle click or detail if desired
+                                        }
+                                    )
+                                }
+                            }
+                            if (rowItems.size < 2) {
+                                Spacer(modifier = Modifier.weight(1f))
                             }
                         }
                     }
